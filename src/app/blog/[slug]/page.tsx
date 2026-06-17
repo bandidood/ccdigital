@@ -27,6 +27,8 @@ export async function generateStaticParams() {
   return posts.map((post) => ({ slug: post.slug }));
 }
 
+export const revalidate = 300; // ISR: revalidate every 5 minutes
+
 export default async function BlogPost({ params }: Props) {
   const { slug } = await params;
   const post = await getPostBySlug(slug);

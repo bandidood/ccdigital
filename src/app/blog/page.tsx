@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   description: "Analyses, guides et retours d'expérience pour anticiper les menaces cyber en PME industrielle.",
 };
 
+export const revalidate = 300; // ISR: revalidate every 5 minutes
+
 export default async function BlogPage() {
   const posts = await getPosts(12);
 
