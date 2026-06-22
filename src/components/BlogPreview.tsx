@@ -1,7 +1,54 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { GhostPost } from "@/lib/ghost";
 
-export function BlogPreview({ posts }: { posts: GhostPost[] }) {
+interface BlogPreviewProps {
+  posts: GhostPost[];
+}
+
+export function BlogPreview({ posts: initialPosts }: BlogPreviewProps) {
+  const [posts, setPosts] = useState<GhostPost[]>(initialPosts);
+  const [loading, setLoading] = useState(initialPosts.length === 0);
+
+  useEffect(() => {
+    if (initialPosts.length > 0) return;
+
+    const ghostUrl = process.env.NEXT_PUBLIC_GHOST_URL || "https://la-cyber-en-clair.ccdigital.fr";
+    const ghostKey = process.env.NEXT_PUBLIC_GHOST_CONTENT_API_KEY || "";
+
+    if (!ghostKey) {
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    fetch(
+      `${ghostUrl}/ghost/api/content/posts/?key=${ghostKey}&limit=3&include=tags,authors&formats=html`
+    )
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (cancelled) return;
+        const fetchedPosts = Array.isArray(data?.posts) ? data.posts : [];
+        setPosts(fetchedPosts);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error("BlogPreview fetch error:", err);
+        setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [initialPosts.length]);
+
   return (
     <section className="py-20 bg-surface-alt">
       <div className="container mx-auto px-6">
@@ -14,7 +61,12 @@ export function BlogPreview({ posts }: { posts: GhostPost[] }) {
           </p>
         </div>
 
-        {posts.length > 0 ? (
+        {loading ? (
+          <div className="text-center py-12 text-content-muted">
+            <div className="inline-block w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mb-4" />
+            <p>Chargement…</p>
+          </div>
+        ) : posts.length > 0 ? (
           <div className="grid md:grid-cols-3 gap-8">
             {posts.map((post) => (
               <Link
