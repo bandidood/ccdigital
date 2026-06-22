@@ -15,8 +15,15 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-ENV NEXT_PUBLIC_GHOST_URL=https://la-cyber-en-clair.ccdigital.fr
-ENV NEXT_PUBLIC_SITE_URL=https://ccdigital.fr
+# NEXT_PUBLIC_* vars must be available at build time to be inlined in client JS
+# Coolify passes these as build-time env vars
+ARG NEXT_PUBLIC_GHOST_URL
+ARG NEXT_PUBLIC_GHOST_CONTENT_API_KEY
+ARG NEXT_PUBLIC_SITE_URL
+
+ENV NEXT_PUBLIC_GHOST_URL=${NEXT_PUBLIC_GHOST_URL}
+ENV NEXT_PUBLIC_GHOST_CONTENT_API_KEY=${NEXT_PUBLIC_GHOST_CONTENT_API_KEY}
+ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
 
 RUN npm run build
 
